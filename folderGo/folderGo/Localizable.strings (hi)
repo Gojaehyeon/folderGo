@@ -1,0 +1,15 @@
+subtitle = "बैच फ़ोल्डर आइकन परिवर्तक ऐप";
+select_icon = "आइकन फ़ाइल चुनें (.png, .icns)";
+select_folders = "फ़ोल्डर चुनें";
+apply_icon = "आइकन लागू करें";
+reset_all = "सभी रीसेट करें";
+default_icon = "डिफ़ॉल्ट";
+dark_icon = "डार्क";
+transparent_icon = "पारदर्शी";
+folders_selected = "%d फ़ोल्डर चुने गए";
+apply_success = "%d फ़ोल्डरों में आइकन सफलतापूर्वक लागू किया गया।";
+apply_partial = "%d सफल, %d असफल।";
+apply_fail = "आइकन लागू करने में विफल।";
+reset_success = "%d फ़ोल्डर macOS डिफ़ॉल्ट आइकन पर पुनर्स्थापित किए गए।";
+reset_partial = "%d पुनर्स्थापित, %d असफल।";
+reset_fail = "डिफ़ॉल्ट आइकन पुनर्स्थापित करने में विफल।"; 

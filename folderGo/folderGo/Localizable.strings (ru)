@@ -1,0 +1,15 @@
+subtitle = "Приложение для пакетной смены иконок папок";
+select_icon = "Выбрать иконку (.png, .icns)";
+select_folders = "Выбрать папки";
+apply_icon = "Применить иконку";
+reset_all = "Сбросить всё";
+default_icon = "По умолчанию";
+dark_icon = "Тёмная";
+transparent_icon = "Прозрачная";
+folders_selected = "Выбрано папок: %d";
+apply_success = "Иконка успешно применена к %d папкам.";
+apply_partial = "%d успешно, %d с ошибкой.";
+apply_fail = "Не удалось применить иконку.";
+reset_success = "%d папок восстановлены до стандартной иконки macOS.";
+reset_partial = "%d восстановлены, %d с ошибкой.";
+reset_fail = "Не удалось восстановить стандартную иконку."; 

@@ -1,0 +1,15 @@
+subtitle = "Aplicación para cambiar iconos de carpetas por lotes";
+select_icon = "Seleccionar icono (.png, .icns)";
+select_folders = "Seleccionar carpetas";
+apply_icon = "Aplicar icono";
+reset_all = "Restablecer todo";
+default_icon = "Predeterminado";
+dark_icon = "Oscuro";
+transparent_icon = "Transparente";
+folders_selected = "%d carpetas seleccionadas";
+apply_success = "Icono aplicado correctamente a %d carpetas.";
+apply_partial = "%d exitosos, %d fallidos.";
+apply_fail = "Error al aplicar el icono.";
+reset_success = "%d carpetas restauradas al icono predeterminado de macOS.";
+reset_partial = "%d restauradas, %d fallidas.";
+reset_fail = "Error al restaurar el icono predeterminado."; 

@@ -1,0 +1,15 @@
+subtitle = "フォルダーアイコン一括変更アプリ";
+select_icon = "アイコンファイルを選択 (.png, .icns)";
+select_folders = "フォルダーを選択（複数可）";
+apply_icon = "アイコンを適用";
+reset_all = "すべてリセット";
+default_icon = "デフォルト";
+dark_icon = "ダーク";
+transparent_icon = "透明";
+folders_selected = "%d個のフォルダーが選択されました";
+apply_success = "%d個のフォルダーにアイコンが正常に適用されました。";
+apply_partial = "%d個成功、%d個失敗。";
+apply_fail = "アイコンの適用に失敗しました。";
+reset_success = "%d個のフォルダーがmacOSのデフォルトアイコンに復元されました。";
+reset_partial = "%d個復元、%d個失敗。";
+reset_fail = "デフォルトアイコンの復元に失敗しました。"; 

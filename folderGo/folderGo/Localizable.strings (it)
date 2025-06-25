@@ -1,0 +1,15 @@
+subtitle = "App per cambiare le icone delle cartelle in batch";
+select_icon = "Seleziona icona (.png, .icns)";
+select_folders = "Seleziona cartelle";
+apply_icon = "Applica icona";
+reset_all = "Reimposta tutto";
+default_icon = "Predefinito";
+dark_icon = "Scuro";
+transparent_icon = "Trasparente";
+folders_selected = "%d cartelle selezionate";
+apply_success = "Icona applicata con successo a %d cartelle.";
+apply_partial = "%d riuscite, %d non riuscite.";
+apply_fail = "Applicazione dell'icona non riuscita.";
+reset_success = "%d cartelle ripristinate all'icona predefinita di macOS.";
+reset_partial = "%d ripristinate, %d non riuscite.";
+reset_fail = "Ripristino dell'icona predefinita non riuscito."; 

@@ -1,0 +1,15 @@
+subtitle = "تطبيق لتغيير أيقونات المجلدات دفعة واحدة";
+select_icon = "اختر الأيقونة (.png, .icns)";
+select_folders = "اختر المجلدات";
+apply_icon = "تطبيق الأيقونة";
+reset_all = "إعادة تعيين الكل";
+default_icon = "افتراضي";
+dark_icon = "داكن";
+transparent_icon = "شفاف";
+folders_selected = "%d مجلدات محددة";
+apply_success = "تم تطبيق الأيقونة بنجاح على %d مجلدات.";
+apply_partial = "%d ناجحة، %d فشلت.";
+apply_fail = "فشل في تطبيق الأيقونة.";
+reset_success = "تمت استعادة %d مجلدات إلى أيقونة macOS الافتراضية.";
+reset_partial = "%d تمت استعادتها، %d فشلت.";
+reset_fail = "فشل في استعادة الأيقونة الافتراضية."; 

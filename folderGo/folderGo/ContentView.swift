@@ -17,10 +17,10 @@ struct ContentView: View {
     @State private var statusMessage: String? = nil
     
     // 기본 제공 아이콘 목록
-    let defaultIcons: [(name: String, label: String)] = [
-        ("folder1", "기본"),
-        ("dark", "다크"),
-        ("transparent", "투명")
+    let defaultIcons: [(name: String, labelKey: String)] = [
+        ("folder1", "default_icon"),
+        ("dark", "dark_icon"),
+        ("transparent", "transparent_icon")
     ]
     
     var body: some View {
@@ -28,13 +28,13 @@ struct ContentView: View {
             HStack {
                 Spacer()
                 Button(action: resetFoldersToDefaultIcon) {
-                    Label("전체 초기화", systemImage: "arrow.counterclockwise")
+                    Label(NSLocalizedString("reset_all", comment: "전체 초기화"), systemImage: "arrow.counterclockwise")
                 }
                 .buttonStyle(.bordered)
                 .disabled(selectedFolderURLs.isEmpty)
             }
-            Text("📁 Foldergo").font(.largeTitle).bold()
-            Text("폴더 아이콘 일괄 변경 앱").font(.title3)
+            Text("Foldergo").font(.largeTitle).bold()
+            Text(NSLocalizedString("subtitle", comment: "앱 서브타이틀")).font(.title3)
             Divider()
             
             // 기본 아이콘 선택 (여러 개)
@@ -53,7 +53,7 @@ struct ContentView: View {
                                 .frame(width: 32, height: 32)
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
                                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(selectedIconImage != nil && selectedIconName == icon.name && selectedIconURL == nil ? Color.accentColor : Color.clear, lineWidth: 2))
-                            Text(icon.label)
+                            Text(NSLocalizedString(icon.labelKey, comment: "기본 아이콘 라벨"))
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                         }
@@ -64,7 +64,7 @@ struct ContentView: View {
             
             // 아이콘 파일 선택
             HStack {
-                Button("아이콘 파일 선택 (.png, .icns)") {
+                Button(NSLocalizedString("select_icon", comment: "아이콘 파일 선택")) {
                     selectIconFile()
                 }
                 if let iconURL = selectedIconURL {
@@ -76,11 +76,11 @@ struct ContentView: View {
             
             // 폴더 선택
             HStack {
-                Button("폴더 선택 (여러 개)") {
+                Button(NSLocalizedString("select_folders", comment: "폴더 선택")) {
                     selectFolders()
                 }
                 if !selectedFolderURLs.isEmpty {
-                    Text("\(selectedFolderURLs.count)개 선택됨")
+                    Text(String(format: NSLocalizedString("folders_selected", comment: "폴더 선택됨"), selectedFolderURLs.count))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -102,7 +102,7 @@ struct ContentView: View {
             Button(action: {
                 applyIconToFolders()
             }) {
-                Text("아이콘 적용하기")
+                Text(NSLocalizedString("apply_icon", comment: "아이콘 적용하기"))
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -155,7 +155,7 @@ struct ContentView: View {
             iconImage = selectedIconImage
         }
         guard let icon = iconImage else {
-            statusMessage = "아이콘 이미지를 불러올 수 없습니다."
+            statusMessage = NSLocalizedString("apply_fail", comment: "아이콘 적용 실패")
             return
         }
         var successCount = 0
@@ -170,11 +170,11 @@ struct ContentView: View {
             }
         }
         if successCount > 0 && failCount == 0 {
-            statusMessage = "\(successCount)개 폴더에 아이콘이 성공적으로 적용되었습니다."
+            statusMessage = String(format: NSLocalizedString("apply_success", comment: "적용 성공"), successCount)
         } else if successCount > 0 {
-            statusMessage = "일부 폴더(\(successCount)개)는 성공, \(failCount)개는 실패했습니다."
+            statusMessage = String(format: NSLocalizedString("apply_partial", comment: "일부 성공"), successCount, failCount)
         } else {
-            statusMessage = "아이콘 적용에 실패했습니다. 권한 또는 파일 형식을 확인하세요."
+            statusMessage = NSLocalizedString("apply_fail", comment: "적용 실패")
         }
     }
     
@@ -192,11 +192,11 @@ struct ContentView: View {
             }
         }
         if successCount > 0 && failCount == 0 {
-            statusMessage = "\(successCount)개 폴더가 macOS 기본 아이콘으로 복원되었습니다."
+            statusMessage = String(format: NSLocalizedString("reset_success", comment: "복원 성공"), successCount)
         } else if successCount > 0 {
-            statusMessage = "일부 폴더(\(successCount)개)는 복원 성공, \(failCount)개는 실패했습니다."
+            statusMessage = String(format: NSLocalizedString("reset_partial", comment: "일부 복원 성공"), successCount, failCount)
         } else {
-            statusMessage = "기본 아이콘 복원에 실패했습니다."
+            statusMessage = NSLocalizedString("reset_fail", comment: "복원 실패")
         }
     }
 }

@@ -1,0 +1,16 @@
+app_title = "Foldergo";
+subtitle = "Batch folder icon changer";
+select_icon = "Select Icon (.png, .icns)";
+select_folders = "Select Folders";
+apply_icon = "Apply Icon";
+reset_all = "Reset All";
+default_icon = "Default";
+dark_icon = "Dark";
+transparent_icon = "Transparent";
+folders_selected = "%d folders selected";
+apply_success = "%d folders updated successfully.";
+apply_partial = "%d succeeded, %d failed.";
+apply_fail = "Failed to apply icon.";
+reset_success = "%d folders restored to macOS default icon.";
+reset_partial = "%d restored, %d failed.";
+reset_fail = "Failed to restore default icon."; 

@@ -1,0 +1,16 @@
+app_title = "폴더고";
+subtitle = "폴더 아이콘 일괄 변경 앱";
+select_icon = "아이콘 파일 선택 (.png, .icns)";
+select_folders = "폴더 선택 (여러 개)";
+apply_icon = "아이콘 적용하기";
+reset_all = "전체 초기화";
+default_icon = "기본";
+dark_icon = "다크";
+transparent_icon = "투명";
+folders_selected = "%d개 선택됨";
+apply_success = "%d개 폴더에 아이콘이 성공적으로 적용되었습니다.";
+apply_partial = "일부 폴더(%d개)는 성공, %d개는 실패했습니다.";
+apply_fail = "아이콘 적용에 실패했습니다.";
+reset_success = "%d개 폴더가 macOS 기본 아이콘으로 복원되었습니다.";
+reset_partial = "일부 폴더(%d개)는 복원 성공, %d개는 실패했습니다.";
+reset_fail = "기본 아이콘 복원에 실패했습니다."; 

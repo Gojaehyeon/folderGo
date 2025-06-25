@@ -1,0 +1,15 @@
+subtitle = "Aplicativo para alterar ícones de pastas em lote";
+select_icon = "Selecionar ícone (.png, .icns)";
+select_folders = "Selecionar pastas";
+apply_icon = "Aplicar ícone";
+reset_all = "Redefinir tudo";
+default_icon = "Padrão";
+dark_icon = "Escuro";
+transparent_icon = "Transparente";
+folders_selected = "%d pastas selecionadas";
+apply_success = "Ícone aplicado com sucesso em %d pastas.";
+apply_partial = "%d bem-sucedidas, %d falharam.";
+apply_fail = "Falha ao aplicar o ícone.";
+reset_success = "%d pastas restauradas para o ícone padrão do macOS.";
+reset_partial = "%d restauradas, %d falharam.";
+reset_fail = "Falha ao restaurar o ícone padrão."; 
