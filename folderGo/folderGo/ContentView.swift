@@ -90,8 +90,7 @@ struct ContentView: View {
                         showEditModal: $showEditModal,
                         editMaskType: $editMaskType,
                         addUserIcon: { img, url in
-                            let square = cropToSquare(image: img)
-                            let userIcon = UserIcon(url: url, image: square)
+                            let userIcon = UserIcon(url: url, image: img)
                             if !userIcons.contains(userIcon) {
                                 userIcons.append(userIcon)
                             }
@@ -99,8 +98,7 @@ struct ContentView: View {
                         showEdit: { showEditModal = true },
                         applyMask: { maskType in
                             if let img = makeIconImage, let url = makeIconImageURL {
-                                let square = cropToSquare(image: img)
-                                if let masked = maskImageWithShape(image: square, maskType: maskType) {
+                                if let masked = maskImageWithShape(image: img, maskType: maskType) {
                                     let userIcon = UserIcon(url: url, image: masked)
                                     if !userIcons.contains(userIcon) {
                                         userIcons.append(userIcon)
@@ -283,18 +281,6 @@ struct ContentView: View {
         let masked = NSImage(size: size)
         masked.addRepresentation(rep)
         return masked
-    }
-
-    // NSImage를 중앙 기준 정사각형으로 크롭
-    private func cropToSquare(image: NSImage) -> NSImage {
-        let size = min(image.size.width, image.size.height)
-        let x = (image.size.width - size) / 2
-        let y = (image.size.height - size) / 2
-        let rect = CGRect(x: x, y: y, width: size, height: size)
-        guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
-              let cropped = cgImage.cropping(to: rect) else { return image }
-        let nsImage = NSImage(cgImage: cropped, size: NSSize(width: size, height: size))
-        return nsImage
     }
 }
 

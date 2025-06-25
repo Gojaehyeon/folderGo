@@ -58,6 +58,7 @@ struct MakeIconView: View {
                                     .frame(width: 140, height: 44)
                             }
                             .buttonStyle(.borderedProminent)
+                            /*
                             Button(action: {
                                 showEdit()
                             }) {
@@ -66,6 +67,7 @@ struct MakeIconView: View {
                                     .frame(width: 140, height: 44)
                             }
                             .buttonStyle(.bordered)
+                            */
                         }
                     }
                 }
