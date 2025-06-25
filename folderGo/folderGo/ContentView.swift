@@ -7,6 +7,8 @@
 
 import SwiftUI
 import AppKit
+import CoreImage
+import CoreImage.CIFilterBuiltins
 
 enum Tab: String, CaseIterable, Identifiable, Hashable {
     case customize = "Customize"
@@ -22,42 +24,32 @@ enum Tab: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-struct UserIcon: Identifiable, Hashable {
-    let id = UUID()
-    let url: URL
-    let image: NSImage
-}
-
 struct ContentView: View {
     @State private var selectedTab: Tab = .customize
     // 상태 변수: 선택된 아이콘, 폴더들
     @State private var selectedIconURL: URL? = nil
-    @State private var selectedIconImage: NSImage? = nil // 기본 아이콘용
-    @State private var selectedIconName: String? = nil // 어떤 기본 아이콘인지
+    @State private var selectedIconImage: NSImage? = nil
+    @State private var selectedIconName: String? = nil
     @State private var selectedFolderURLs: [URL] = []
     @State private var statusMessage: String? = nil
     // Make Icon 탭 전용 상태
     @State private var makeIconImageURL: URL? = nil
     @State private var makeIconImage: NSImage? = nil
-    // 사용자 업로드 아이콘 목록
-    @State private var userIcons: [UserIcon] = []
-    @State private var selectedUserIcon: UserIcon? = nil
-    // Reset 탭: 바꾼 내역이 있는 폴더들 (예시)
-    @State private var modifiedFolders: [URL] = []
     @State private var showResetAllAlert = false
     @State private var applySuccessMessage: String? = nil
     @State private var applySuccessTimer: Timer? = nil
-    @State private var resetSelectedMessage: String? = nil
-    @State private var resetSelectedTimer: Timer? = nil
-    
-    // 기본 제공 아이콘 목록
+    @State private var showEditModal = false
+    @State private var editMaskType: IconMaskType = .roundedSquare
+    @State private var userIcons: [UserIcon] = []
+    @State private var selectedUserIcon: UserIcon? = nil
+
     let defaultIcons: [(name: String, labelKey: String)] = [
         ("folder1", "default_icon"),
         ("dark", "dark_icon"),
         ("transparent", "transparent_icon"),
         ("download", "download_icon")
     ]
-    
+
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
@@ -69,7 +61,6 @@ struct ContentView: View {
             .listStyle(.sidebar)
         } detail: {
             VStack(alignment: .center, spacing: 24) {
-                // 커스텀 헤더
                 HStack {
                     Text(selectedTab.rawValue)
                         .font(.title2).bold()
@@ -79,289 +70,59 @@ struct ContentView: View {
                 Divider()
                 switch selectedTab {
                 case .customize:
-                    VStack(alignment: .leading, spacing: 16) {
-                        // 기본 아이콘 레이블
-                        Text("Liquid Glass Icons")
-                            .font(.headline)
-                        GroupBox {
-                            VStack(spacing: 20) {
-                                // Glass 아이콘 선택
-                                HStack(spacing: 48) {
-                                    ForEach(defaultIcons, id: \ .name) { icon in
-                                        Button(action: {
-                                            if let img = NSImage(named: icon.name) {
-                                                selectedIconImage = img
-                                                selectedIconName = icon.name
-                                                selectedIconURL = nil // 파일 선택 해제
-                                                selectedUserIcon = nil // 사용자 아이콘 선택 해제
-                                            }
-                                        }) {
-                                            VStack(spacing: 2) {
-                                                Image(icon.name)
-                                                    .resizable()
-                                                    .frame(width: 100, height: 100)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(selectedIconImage != nil && selectedIconName == icon.name && selectedIconURL == nil && selectedUserIcon == nil ? Color.accentColor : Color.clear, lineWidth: 2))
-                                                Text(NSLocalizedString(icon.labelKey, comment: "기본 아이콘 라벨"))
-                                                    .font(.caption2)
-                                                    .foregroundColor(.secondary)
-                                            }
-                                        }
-                                        .buttonStyle(.plain)
-                                    }
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 24)
-                            }
-                            .padding(.bottom, 8)
-                        }
-                        .groupBoxStyle(.automatic)
-                        .frame(maxWidth: 1000)
-                        // My Icons 레이블 및 그룹박스
-                        if !userIcons.isEmpty {
-                            Text("My Icons")
-                                .font(.headline)
-                            GroupBox {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    ScrollView(.horizontal, showsIndicators: false) {
-                                        HStack(spacing: 24) {
-                                            ForEach(userIcons) { userIcon in
-                                                ZStack(alignment: .topTrailing) {
-                                                    Button(action: {
-                                                        selectedUserIcon = userIcon
-                                                        selectedIconImage = userIcon.image
-                                                        selectedIconName = nil
-                                                        selectedIconURL = userIcon.url
-                                                    }) {
-                                                        Image(nsImage: userIcon.image)
-                                                            .resizable()
-                                                            .frame(width: 100, height: 100)
-                                                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(selectedUserIcon == userIcon ? Color.accentColor : Color.clear, lineWidth: 2))
-                                                    }
-                                                    .buttonStyle(.plain)
-                                                    if selectedUserIcon == userIcon {
-                                                        Button(action: {
-                                                            if let idx = userIcons.firstIndex(of: userIcon) {
-                                                                userIcons.remove(at: idx)
-                                                                if selectedUserIcon == userIcon {
-                                                                    selectedUserIcon = nil
-                                                                    selectedIconImage = nil
-                                                                    selectedIconURL = nil
-                                                                }
-                                                            }
-                                                        }) {
-                                                            Image(systemName: "xmark.circle.fill")
-                                                                .foregroundColor(.red)
-                                                                .background(Color.white.opacity(0.8))
-                                                                .clipShape(Circle())
-                                                        }
-                                                        .buttonStyle(.plain)
-                                                        .offset(x: 8, y: -8)
-                                                    }
-                                                }
-                                                .frame(width: 100, height: 100)
-                                                .padding(.vertical, 12)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            .groupBoxStyle(.automatic)
-                            .frame(maxWidth: 1000)
-                        }
-                        // Select Folders 버튼 (중앙, 큼직하게)
-                        Button(action: { selectFolders() }) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "plus")
-                                Text(selectedFolderURLs.isEmpty ? "Select Folders" : "Add Folders")
-                                    .font(.title3).bold()
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 16)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        // 상태 메시지 (선택적으로 유지)
-                        if let msg = statusMessage {
-                            Text(msg)
-                                .foregroundColor(.blue)
-                                .font(.footnote)
-                                .padding(.top, 8)
-                        }
-                        Spacer()
-                        // Apply 버튼 (우측 하단)
-                        HStack {
-                            if let msg = applySuccessMessage {
-                                Text(msg)
-                                    .font(.subheadline)
-                                    .foregroundColor(.accentColor)
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                            } else if !selectedFolderURLs.isEmpty {
-                                HStack(spacing: 8) {
-                                    Button(action: { selectedFolderURLs = [] }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .buttonStyle(.plain)
-                                    Text("\(selectedFolderURLs.count) folders selected: " + selectedFolderURLs.map { $0.lastPathComponent }.joined(separator: ", "))
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(1)
-                                        .truncationMode(.tail)
-                                }
-                            }
-                            Spacer()
-                            Button(action: { applyIconToFolders() }) {
-                                Text("Apply")
-                                    .font(.title3).bold()
-                                    .frame(width: 120, height: 44)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .disabled((selectedIconURL == nil && selectedIconImage == nil) || selectedFolderURLs.isEmpty)
-                        }
-                        .padding(.top, 24)
-                    }
+                    CustomizeView(
+                        selectedIconImage: $selectedIconImage,
+                        selectedIconName: $selectedIconName,
+                        selectedIconURL: $selectedIconURL,
+                        selectedUserIcon: $selectedUserIcon,
+                        userIcons: $userIcons,
+                        selectedFolderURLs: $selectedFolderURLs,
+                        applySuccessMessage: $applySuccessMessage,
+                        defaultIcons: defaultIcons,
+                        selectFolders: selectFolders,
+                        applyIconToFolders: applyIconToFolders
+                    )
                 case .makeIcon:
-                    VStack(spacing: 24) {
-                        if makeIconImage == nil {
-                            Button(action: {
-                                let panel = NSOpenPanel()
-                                panel.allowedFileTypes = ["png", "icns"]
-                                panel.allowsMultipleSelection = false
-                                panel.canChooseDirectories = false
-                                panel.canChooseFiles = true
-                                panel.title = NSLocalizedString("select_icon", comment: "아이콘 파일 선택")
-                                if panel.runModal() == .OK, let url = panel.url {
-                                    makeIconImageURL = url
-                                    makeIconImage = NSImage(contentsOf: url)
-                                }
-                            }) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "plus")
-                                    Text(NSLocalizedString("select_icon", comment: "아이콘 파일 선택"))
-                                        .font(.title3).bold()
-                                }
-                                .frame(maxWidth: .infinity)
+                    MakeIconView(
+                        makeIconImage: $makeIconImage,
+                        makeIconImageURL: $makeIconImageURL,
+                        userIcons: $userIcons,
+                        showEditModal: $showEditModal,
+                        editMaskType: $editMaskType,
+                        addUserIcon: { img, url in
+                            let square = cropToSquare(image: img)
+                            let userIcon = UserIcon(url: url, image: square)
+                            if !userIcons.contains(userIcon) {
+                                userIcons.append(userIcon)
                             }
-                            .buttonStyle(.plain)
-                            .padding(.vertical, 16)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                        } else {
+                        },
+                        showEdit: { showEditModal = true },
+                        applyMask: { maskType in
                             if let img = makeIconImage, let url = makeIconImageURL {
-                                VStack(spacing: 16) {
-                                    Image(nsImage: img)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(maxWidth: 240, maxHeight: 240)
-                                        .cornerRadius(16)
-                                        .shadow(radius: 6)
-                                    HStack(spacing: 24) {
-                                        Button(action: {
-                                            // 바로 추가하기: userIcons에 추가, 초기화, Customize 탭 이동
-                                            if let img = makeIconImage, let url = makeIconImageURL {
-                                                let userIcon = UserIcon(url: url, image: img)
-                                                if !userIcons.contains(userIcon) {
-                                                    userIcons.append(userIcon)
-                                                }
-                                            }
-                                            makeIconImage = nil
-                                            makeIconImageURL = nil
-                                            selectedTab = .customize
-                                        }) {
-                                            Text(NSLocalizedString("add_now", comment: "바로 추가하기"))
-                                                .font(.title3).bold()
-                                                .frame(width: 140, height: 44)
-                                        }
-                                        .buttonStyle(.borderedProminent)
-                                        Button(action: {
-                                            // 편집하기: 추후 구현
-                                        }) {
-                                            Text(NSLocalizedString("edit", comment: "편집하기"))
-                                                .font(.title3).bold()
-                                                .frame(width: 140, height: 44)
-                                        }
-                                        .buttonStyle(.bordered)
+                                let square = cropToSquare(image: img)
+                                if let masked = maskImageWithShape(image: square, maskType: maskType) {
+                                    let userIcon = UserIcon(url: url, image: masked)
+                                    if !userIcons.contains(userIcon) {
+                                        userIcons.append(userIcon)
                                     }
                                 }
                             }
-                        }
-                        Spacer()
-                    }
-                    .frame(maxWidth: 600)
+                        },
+                        resetMakeIcon: {
+                            makeIconImage = nil
+                            makeIconImageURL = nil
+                        },
+                        moveToCustomize: { selectedTab = .customize }
+                    )
                 case .reset:
-                    VStack(alignment: .leading, spacing: 16) {
-                        // Select Folders 버튼 (중앙, 큼직하게)
-                        Button(action: { selectFolders() }) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "plus")
-                                Text(selectedFolderURLs.isEmpty ? "Select Folders" : "Add Folders")
-                                    .font(.title3).bold()
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 16)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        Spacer()
-                        // 하단 버튼 영역
-                        HStack {
-                            if let msg = applySuccessMessage {
-                                Text(msg)
-                                    .font(.subheadline)
-                                    .foregroundColor(.accentColor)
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                            } else if !selectedFolderURLs.isEmpty {
-                                HStack(spacing: 8) {
-                                    Button(action: { selectedFolderURLs = [] }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .buttonStyle(.plain)
-                                    Text("\(selectedFolderURLs.count) folders selected: " + selectedFolderURLs.map { $0.lastPathComponent }.joined(separator: ", "))
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(1)
-                                        .truncationMode(.tail)
-                                }
-                            }
-                            Spacer()
-                            // 전체 리셋
-                            Button(action: {
-                                if selectedFolderURLs.isEmpty {
-                                    // 폴더 선택 패널 먼저 띄우기
-                                    selectFoldersForResetAll()
-                                } else {
-                                    showResetAllAlert = true
-                                }
-                            }) {
-                                Text("Reset All")
-                                    .font(.title3).bold()
-                                    .frame(width: 120, height: 44)
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                        .padding(.top, 24)
-                        .alert(isPresented: $showResetAllAlert) {
-                            Alert(
-                                title: Text("정말 모든 선택 폴더를 리셋하시겠습니까?"),
-                                message: Text("이 선택은 돌이킬 수 없습니다."),
-                                primaryButton: .destructive(Text("리셋")) {
-                                    resetAllSelectedFolders()
-                                },
-                                secondaryButton: .cancel()
-                            )
-                        }
-                        // 상태 메시지
-                        if let msg = statusMessage {
-                            Text(msg)
-                                .foregroundColor(.blue)
-                                .font(.footnote)
-                                .padding(.top, 8)
-                        }
-                    }
+                    ResetView(
+                        selectedFolderURLs: $selectedFolderURLs,
+                        applySuccessMessage: $applySuccessMessage,
+                        showResetAllAlert: $showResetAllAlert,
+                        selectFolders: selectFolders,
+                        resetAllSelectedFolders: resetAllSelectedFolders,
+                        selectFoldersForResetAll: selectFoldersForResetAll
+                    )
                 }
                 Spacer()
             }
@@ -371,22 +132,8 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.balanced)
     }
-    
+
     // MARK: - 파일/폴더 선택 래퍼
-    private func selectIconFile() {
-        let panel = NSOpenPanel()
-        panel.allowedFileTypes = ["png", "icns"]
-        panel.allowsMultipleSelection = false
-        panel.canChooseDirectories = false
-        panel.canChooseFiles = true
-        panel.title = NSLocalizedString("select_icon", comment: "아이콘 파일 선택")
-        if panel.runModal() == .OK, let url = panel.url {
-            selectedIconURL = url
-            selectedIconImage = nil // 기본 아이콘 선택 해제
-            selectedIconName = nil
-        }
-    }
-    
     private func selectFolders() {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false
@@ -394,12 +141,9 @@ struct ContentView: View {
         panel.allowsMultipleSelection = true
         panel.title = NSLocalizedString("select_folders", comment: "폴더 선택")
         if panel.runModal() == .OK {
-            // 기존 폴더 + 새로 선택한 폴더를 합쳐 중복 없이 유지
             let newFolders = panel.urls
             let allFolders = selectedFolderURLs + newFolders
-            // 중복 제거 (URL의 path 기준)
             selectedFolderURLs = Array(Set(allFolders.map { $0.path })).map { URL(fileURLWithPath: $0) }
-            // 순서 보존 (기존 + 새로 추가된 순서)
             selectedFolderURLs = allFolders.reduce(into: [URL]()) { acc, url in
                 if !acc.contains(where: { $0.path == url.path }) {
                     acc.append(url)
@@ -407,11 +151,13 @@ struct ContentView: View {
             }
         }
     }
-    
+
     // MARK: - 아이콘 적용 로직
     private func applyIconToFolders() {
         let iconImage: NSImage?
-        if let url = selectedIconURL {
+        if let userIcon = selectedUserIcon {
+            iconImage = userIcon.image // 마스킹된 이미지 우선 적용
+        } else if let url = selectedIconURL {
             iconImage = NSImage(contentsOf: url)
         } else {
             iconImage = selectedIconImage
@@ -439,7 +185,7 @@ struct ContentView: View {
             showTimedMessage(NSLocalizedString("apply_fail", comment: "아이콘 적용 실패"))
         }
     }
-    
+
     private func showApplySuccessMessage(_ msg: String) {
         applySuccessMessage = msg
         applySuccessTimer?.invalidate()
@@ -448,29 +194,7 @@ struct ContentView: View {
             selectedFolderURLs = []
         }
     }
-    
-    // MARK: - 전체 초기화(폴더 아이콘 원복)
-    private func resetFoldersToDefaultIcon() {
-        var successCount = 0
-        var failCount = 0
-        for folderURL in selectedFolderURLs {
-            let result = NSWorkspace.shared.setIcon(nil, forFile: folderURL.path, options: [])
-            if result {
-                NSWorkspace.shared.noteFileSystemChanged(folderURL.path)
-                successCount += 1
-            } else {
-                failCount += 1
-            }
-        }
-        if successCount > 0 && failCount == 0 {
-            showTimedMessage(String(format: NSLocalizedString("reset_success", comment: "복원 성공"), successCount))
-        } else if successCount > 0 {
-            showTimedMessage(String(format: NSLocalizedString("reset_partial", comment: "일부 복원 성공"), successCount, failCount))
-        } else {
-            showTimedMessage(NSLocalizedString("reset_fail", comment: "복원 실패"))
-        }
-    }
-    
+
     // Reset All: 선택된 모든 폴더 초기화
     private func resetAllSelectedFolders() {
         var successCount = 0
@@ -492,7 +216,7 @@ struct ContentView: View {
             showTimedMessage(NSLocalizedString("reset_fail", comment: "복원 실패"))
         }
     }
-    
+
     // Reset All: 폴더 선택 패널
     private func selectFoldersForResetAll() {
         let panel = NSOpenPanel()
@@ -507,12 +231,113 @@ struct ContentView: View {
             }
         }
     }
-    
+
     private func showTimedMessage(_ msg: String) {
         statusMessage = msg
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             statusMessage = nil
         }
+    }
+
+    // 마스킹 함수: NSImage + Shape → NSImage
+    private func maskImageWithShape(image: NSImage, maskType: IconMaskType) -> NSImage? {
+        let size = image.size
+        let rect = CGRect(origin: .zero, size: size)
+        let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(size.width), pixelsHigh: Int(size.height), bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)
+        rep?.size = size
+        guard let rep = rep else { return nil }
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        let path: NSBezierPath
+        switch maskType {
+        case .roundedSquare:
+            path = NSBezierPath(roundedRect: rect, xRadius: size.width/6, yRadius: size.height/6)
+        case .circle:
+            path = NSBezierPath(ovalIn: rect)
+        case .star:
+            path = NSBezierPath()
+            let center = CGPoint(x: size.width/2, y: size.height/2)
+            let points = 5
+            let r1 = min(size.width, size.height)/2
+            let r2 = r1/2.5
+            for i in 0..<(points*2) {
+                let angle = CGFloat(i) * .pi / CGFloat(points)
+                let radius = i % 2 == 0 ? r1 : r2
+                let pt = CGPoint(x: center.x + cos(angle - .pi/2)*radius, y: center.y + sin(angle - .pi/2)*radius)
+                if i == 0 { path.move(to: pt) } else { path.line(to: pt) }
+            }
+            path.close()
+        case .heart:
+            path = NSBezierPath()
+            let w = size.width, h = size.height
+            path.move(to: CGPoint(x: w/2, y: h))
+            path.curve(to: CGPoint(x: 0, y: h/4), controlPoint1: CGPoint(x: w/2, y: h*3/4), controlPoint2: CGPoint(x: 0, y: h/2))
+            path.appendArc(withCenter: CGPoint(x: w/4, y: h/4), radius: w/4, startAngle: 180, endAngle: 0, clockwise: false)
+            path.appendArc(withCenter: CGPoint(x: w*3/4, y: h/4), radius: w/4, startAngle: 180, endAngle: 0, clockwise: false)
+            path.curve(to: CGPoint(x: w/2, y: h), controlPoint1: CGPoint(x: w, y: h/2), controlPoint2: CGPoint(x: w/2, y: h*3/4))
+            path.close()
+        }
+        path.addClip()
+        image.draw(in: rect)
+        NSGraphicsContext.restoreGraphicsState()
+        let masked = NSImage(size: size)
+        masked.addRepresentation(rep)
+        return masked
+    }
+
+    // NSImage를 중앙 기준 정사각형으로 크롭
+    private func cropToSquare(image: NSImage) -> NSImage {
+        let size = min(image.size.width, image.size.height)
+        let x = (image.size.width - size) / 2
+        let y = (image.size.height - size) / 2
+        let rect = CGRect(x: x, y: y, width: size, height: size)
+        guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
+              let cropped = cgImage.cropping(to: rect) else { return image }
+        let nsImage = NSImage(cgImage: cropped, size: NSSize(width: size, height: size))
+        return nsImage
+    }
+}
+
+// 별, 하트 Shape 정의
+struct StarShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let starExtrusion: CGFloat = rect.width / 2.5
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        var points: [CGPoint] = []
+        let pointsOnStar = 5
+        for i in 0..<pointsOnStar * 2 {
+            let angle = (Double(i) * (360.0 / Double(pointsOnStar * 2))) * Double.pi / 180
+            let radius = i % 2 == 0 ? rect.width / 2 : starExtrusion / 2
+            let pt = CGPoint(
+                x: center.x + CGFloat(cos(angle)) * radius,
+                y: center.y + CGFloat(sin(angle)) * radius
+            )
+            points.append(pt)
+        }
+        var path = Path()
+        path.move(to: points[0])
+        for pt in points.dropFirst() { path.addLine(to: pt) }
+        path.closeSubpath()
+        return path
+    }
+}
+
+struct HeartShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let width = rect.width
+        let height = rect.height
+        path.move(to: CGPoint(x: width/2, y: height))
+        path.addCurve(to: CGPoint(x: 0, y: height/4),
+                      control1: CGPoint(x: width/2, y: height*3/4),
+                      control2: CGPoint(x: 0, y: height/2))
+        path.addArc(center: CGPoint(x: width/4, y: height/4), radius: width/4, startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+        path.addArc(center: CGPoint(x: width*3/4, y: height/4), radius: width/4, startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+        path.addCurve(to: CGPoint(x: width/2, y: height),
+                      control1: CGPoint(x: width, y: height/2),
+                      control2: CGPoint(x: width/2, y: height*3/4))
+        path.closeSubpath()
+        return path
     }
 }
 
