@@ -25,6 +25,14 @@ struct ContentView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                Spacer()
+                Button(action: resetFoldersToDefaultIcon) {
+                    Label("전체 초기화", systemImage: "arrow.counterclockwise")
+                }
+                .buttonStyle(.bordered)
+                .disabled(selectedFolderURLs.isEmpty)
+            }
             Text("📁 Foldergo").font(.largeTitle).bold()
             Text("폴더 아이콘 일괄 변경 앱").font(.title3)
             Divider()
@@ -167,6 +175,28 @@ struct ContentView: View {
             statusMessage = "일부 폴더(\(successCount)개)는 성공, \(failCount)개는 실패했습니다."
         } else {
             statusMessage = "아이콘 적용에 실패했습니다. 권한 또는 파일 형식을 확인하세요."
+        }
+    }
+    
+    // MARK: - 전체 초기화(폴더 아이콘 원복)
+    private func resetFoldersToDefaultIcon() {
+        var successCount = 0
+        var failCount = 0
+        for folderURL in selectedFolderURLs {
+            let result = NSWorkspace.shared.setIcon(nil, forFile: folderURL.path, options: [])
+            if result {
+                NSWorkspace.shared.noteFileSystemChanged(folderURL.path)
+                successCount += 1
+            } else {
+                failCount += 1
+            }
+        }
+        if successCount > 0 && failCount == 0 {
+            statusMessage = "\(successCount)개 폴더가 macOS 기본 아이콘으로 복원되었습니다."
+        } else if successCount > 0 {
+            statusMessage = "일부 폴더(\(successCount)개)는 복원 성공, \(failCount)개는 실패했습니다."
+        } else {
+            statusMessage = "기본 아이콘 복원에 실패했습니다."
         }
     }
 }
