@@ -1,12 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "trans 1.png",
+      "filename" : "trans.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "trans.png",
+      "filename" : "trans 1.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
