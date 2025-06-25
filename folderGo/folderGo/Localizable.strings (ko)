@@ -14,4 +14,6 @@ apply_fail = "아이콘 적용에 실패했습니다.";
 reset_success = "%d개 폴더가 macOS 기본 아이콘으로 복원되었습니다.";
 reset_partial = "일부 폴더(%d개)는 복원 성공, %d개는 실패했습니다.";
 reset_fail = "기본 아이콘 복원에 실패했습니다.";
-download_icon = "Download Glass"; 
+download_icon = "Download Glass";
+add_now = "바로 추가하기";
+edit = "편집하기"; 

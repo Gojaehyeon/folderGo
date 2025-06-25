@@ -14,4 +14,6 @@ apply_fail = "Failed to apply icon.";
 reset_success = "%d folders restored to macOS default icon.";
 reset_partial = "%d restored, %d failed.";
 reset_fail = "Failed to restore default icon.";
-download_icon = "Download Glass"; 
+download_icon = "Download Glass";
+add_now = "Add Now";
+edit = "Edit"; 

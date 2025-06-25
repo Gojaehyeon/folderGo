@@ -126,19 +126,42 @@ struct ContentView: View {
                                     ScrollView(.horizontal, showsIndicators: false) {
                                         HStack(spacing: 24) {
                                             ForEach(userIcons) { userIcon in
-                                                Button(action: {
-                                                    selectedUserIcon = userIcon
-                                                    selectedIconImage = userIcon.image
-                                                    selectedIconName = nil
-                                                    selectedIconURL = userIcon.url
-                                                }) {
-                                                    Image(nsImage: userIcon.image)
-                                                        .resizable()
-                                                        .frame(width: 100, height: 100)
-                                                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(selectedUserIcon == userIcon ? Color.accentColor : Color.clear, lineWidth: 2))
+                                                ZStack(alignment: .topTrailing) {
+                                                    Button(action: {
+                                                        selectedUserIcon = userIcon
+                                                        selectedIconImage = userIcon.image
+                                                        selectedIconName = nil
+                                                        selectedIconURL = userIcon.url
+                                                    }) {
+                                                        Image(nsImage: userIcon.image)
+                                                            .resizable()
+                                                            .frame(width: 100, height: 100)
+                                                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(selectedUserIcon == userIcon ? Color.accentColor : Color.clear, lineWidth: 2))
+                                                    }
+                                                    .buttonStyle(.plain)
+                                                    if selectedUserIcon == userIcon {
+                                                        Button(action: {
+                                                            if let idx = userIcons.firstIndex(of: userIcon) {
+                                                                userIcons.remove(at: idx)
+                                                                if selectedUserIcon == userIcon {
+                                                                    selectedUserIcon = nil
+                                                                    selectedIconImage = nil
+                                                                    selectedIconURL = nil
+                                                                }
+                                                            }
+                                                        }) {
+                                                            Image(systemName: "xmark.circle.fill")
+                                                                .foregroundColor(.red)
+                                                                .background(Color.white.opacity(0.8))
+                                                                .clipShape(Circle())
+                                                        }
+                                                        .buttonStyle(.plain)
+                                                        .offset(x: 8, y: -8)
+                                                    }
                                                 }
-                                                .buttonStyle(.plain)
+                                                .frame(width: 100, height: 100)
+                                                .padding(.vertical, 12)
                                             }
                                         }
                                     }
@@ -202,46 +225,67 @@ struct ContentView: View {
                     }
                 case .makeIcon:
                     VStack(spacing: 24) {
-                        Button(action: {
-                            let panel = NSOpenPanel()
-                            panel.allowedFileTypes = ["png", "icns"]
-                            panel.allowsMultipleSelection = false
-                            panel.canChooseDirectories = false
-                            panel.canChooseFiles = true
-                            panel.title = NSLocalizedString("select_icon", comment: "아이콘 파일 선택")
-                            if panel.runModal() == .OK, let url = panel.url {
-                                makeIconImageURL = url
-                                makeIconImage = NSImage(contentsOf: url)
-                                if let img = makeIconImage {
-                                    let userIcon = UserIcon(url: url, image: img)
-                                    if !userIcons.contains(userIcon) {
-                                        userIcons.append(userIcon)
+                        if makeIconImage == nil {
+                            Button(action: {
+                                let panel = NSOpenPanel()
+                                panel.allowedFileTypes = ["png", "icns"]
+                                panel.allowsMultipleSelection = false
+                                panel.canChooseDirectories = false
+                                panel.canChooseFiles = true
+                                panel.title = NSLocalizedString("select_icon", comment: "아이콘 파일 선택")
+                                if panel.runModal() == .OK, let url = panel.url {
+                                    makeIconImageURL = url
+                                    makeIconImage = NSImage(contentsOf: url)
+                                }
+                            }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "plus")
+                                    Text(NSLocalizedString("select_icon", comment: "아이콘 파일 선택"))
+                                        .font(.title3).bold()
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.vertical, 16)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                        } else {
+                            if let img = makeIconImage, let url = makeIconImageURL {
+                                VStack(spacing: 16) {
+                                    Image(nsImage: img)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(maxWidth: 240, maxHeight: 240)
+                                        .cornerRadius(16)
+                                        .shadow(radius: 6)
+                                    HStack(spacing: 24) {
+                                        Button(action: {
+                                            // 바로 추가하기: userIcons에 추가, 초기화, Customize 탭 이동
+                                            if let img = makeIconImage, let url = makeIconImageURL {
+                                                let userIcon = UserIcon(url: url, image: img)
+                                                if !userIcons.contains(userIcon) {
+                                                    userIcons.append(userIcon)
+                                                }
+                                            }
+                                            makeIconImage = nil
+                                            makeIconImageURL = nil
+                                            selectedTab = .customize
+                                        }) {
+                                            Text(NSLocalizedString("add_now", comment: "바로 추가하기"))
+                                                .font(.title3).bold()
+                                                .frame(width: 140, height: 44)
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                        Button(action: {
+                                            // 편집하기: 추후 구현
+                                        }) {
+                                            Text(NSLocalizedString("edit", comment: "편집하기"))
+                                                .font(.title3).bold()
+                                                .frame(width: 140, height: 44)
+                                        }
+                                        .buttonStyle(.bordered)
                                     }
                                 }
                             }
-                        }) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "plus")
-                                Text(NSLocalizedString("select_icon", comment: "아이콘 파일 선택"))
-                                    .font(.title3).bold()
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 16)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        if let url = makeIconImageURL {
-                            Text(url.lastPathComponent)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        if let img = makeIconImage {
-                            Image(nsImage: img)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(maxWidth: 180, maxHeight: 180)
-                                .cornerRadius(12)
-                                .shadow(radius: 4)
                         }
                         Spacer()
                     }
@@ -263,7 +307,13 @@ struct ContentView: View {
                         Spacer()
                         // 하단 버튼 영역
                         HStack {
-                            if !selectedFolderURLs.isEmpty {
+                            if let msg = applySuccessMessage {
+                                Text(msg)
+                                    .font(.subheadline)
+                                    .foregroundColor(.accentColor)
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                            } else if !selectedFolderURLs.isEmpty {
                                 HStack(spacing: 8) {
                                     Button(action: { selectedFolderURLs = [] }) {
                                         Image(systemName: "xmark.circle.fill")
@@ -435,13 +485,12 @@ struct ContentView: View {
             }
         }
         if successCount > 0 && failCount == 0 {
-            showTimedMessage("모든 선택 폴더가 macOS 기본 아이콘으로 복원되었습니다.")
+            showApplySuccessMessage(String(format: NSLocalizedString("reset_success", comment: "복원 성공"), successCount))
         } else if successCount > 0 {
-            showTimedMessage("일부 폴더(\(successCount)개는 복원 성공, \(failCount)개는 실패했습니다.")
+            showApplySuccessMessage(String(format: NSLocalizedString("reset_partial", comment: "일부 복원 성공"), successCount, failCount))
         } else {
-            showTimedMessage("기본 아이콘 복원에 실패했습니다.")
+            showTimedMessage(NSLocalizedString("reset_fail", comment: "복원 실패"))
         }
-        selectedFolderURLs = []
     }
     
     // Reset All: 폴더 선택 패널
